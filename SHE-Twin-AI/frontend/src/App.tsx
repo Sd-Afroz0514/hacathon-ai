@@ -30,9 +30,10 @@ export const App: React.FC = () => {
         <LanguageProvider>
           <HealthProvider>
             <Routes>
-              {/* Public Layout Routes */}
+              {/* Public Layout Routes (Homepage & Authentication) */}
               <Route element={<PublicLayout />}>
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
               </Route>

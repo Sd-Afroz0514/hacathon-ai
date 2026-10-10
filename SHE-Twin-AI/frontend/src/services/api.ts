@@ -24,7 +24,36 @@ import {
   INITIAL_USER_SETTINGS,
 } from './demoData';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+
+// Determine API Base URL dynamically:
+// - In production / deployed access (not on dev ports 5173/3000):
+//   Use external production URL if explicitly provided (e.g. separate backend service),
+//   otherwise use same-origin '/api' (unified single-service deployment).
+// - In local frontend dev (ports 5173 or 3000):
+//   Fallback to local backend at 'http://localhost:8000/api'.
+const resolveApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && window.location) {
+    const isDevPort = window.location.port === '5173' || window.location.port === '3000';
+    if (!isDevPort) {
+      if (
+        envApiUrl &&
+        /^https?:\/\//i.test(envApiUrl) &&
+        !envApiUrl.includes('localhost') &&
+        !envApiUrl.includes('127.0.0.1')
+      ) {
+        return envApiUrl;
+      }
+      return '/api';
+    }
+  }
+  return envApiUrl || 'http://localhost:8000/api';
+};
+
+export const API_BASE_URL = resolveApiBaseUrl().replace(/\/+$/, '');
+
+
+
 
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('she_twin_token');
@@ -68,7 +97,9 @@ export const apiService = {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch(`${API_BASE_URL.replace('/api', '')}/health`, { signal: controller.signal });
+      const rootUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+      const healthUrl = rootUrl ? `${rootUrl}/health` : '/health';
+      const res = await fetch(healthUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
       return res.ok;
     } catch {

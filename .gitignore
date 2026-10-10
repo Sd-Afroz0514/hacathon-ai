@@ -20,7 +20,10 @@ env/
 # Environment files & secrets
 .env
 **/.env
-.env.local
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example
 *.pem
 *.key
 

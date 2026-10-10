@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/common/Sidebar';
 import { TopBar } from '../components/common/TopBar';
 import { DemoBanner } from '../components/common/DemoBanner';
@@ -7,10 +7,18 @@ import { useAuth } from '../context/AuthContext';
 
 export const AppLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, loginAsDemo } = useAuth();
 
-  if (!isAuthenticated && !isLoading) {
-    return <Navigate to="/login" replace />;
+  // Direct application access for deployment:
+  // If accessing without an existing session, seamlessly initialize demo session
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      loginAsDemo('Female');
+    }
+  }, [isAuthenticated, isLoading, loginAsDemo]);
+
+  if (!isAuthenticated && isLoading) {
+    return null;
   }
 
   return (

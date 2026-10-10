@@ -1,13 +1,15 @@
 # Environment and credentials
 .env
-.env.local
-.env.*.local
+**/.env
+.env.*
+**/.env.*
 *.pem
 *.key
 *.cert
 
 # Allow example files
 !.env.example
+!**/.env.example
 
 # Local SQLite databases and temp files
 *.db

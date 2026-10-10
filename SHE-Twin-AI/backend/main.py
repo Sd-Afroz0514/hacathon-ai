@@ -1,8 +1,11 @@
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from database import engine, Base, SessionLocal
 from app.core.config import settings
 from app.models.user import User
@@ -187,10 +190,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware
+# CORS Middleware — supports configured origins, localhost, and all deployed HTTPS/HTTP domains
+cors_origins = [o for o in settings.cors_origins_list if o != "*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -216,8 +221,14 @@ app.include_router(confirmed_lab_router, prefix=settings.API_V1_STR)
 app.include_router(care_navigation_router, prefix=settings.API_V1_STR)
 app.include_router(timeline_router, prefix=settings.API_V1_STR)
 
-@app.get("/")
-def root():
+@app.get("/health")
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy", "database": "connected"}
+
+@app.get("/api")
+@app.get("/api/info")
+def api_info():
     return {
         "name": "SHE Twin AI Backend API",
         "status": "online",
@@ -226,11 +237,46 @@ def root():
         "time": datetime.now(timezone.utc).isoformat()
     }
 
-@app.get("/health")
-@app.get("/api/health")
-def health_check():
-    return {"status": "healthy", "database": "connected"}
+# Frontend SPA Direct Application Serving for Deployment
+FRONTEND_DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+if FRONTEND_DIST_DIR.exists() and (FRONTEND_DIST_DIR / "index.html").exists():
+    assets_dir = FRONTEND_DIST_DIR / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="static_assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Exclude backend API routes and Swagger docs from SPA catch-all
+        if (
+            full_path.startswith("api/")
+            or full_path == "api"
+            or full_path in ["docs", "redoc", "openapi.json", "health"]
+        ):
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        # Serve static file if it exists directly in frontend dist (e.g. favicon.svg)
+        target_file = FRONTEND_DIST_DIR / full_path
+        if full_path and target_file.is_file():
+            return FileResponse(target_file)
+
+        # Serve SPA index.html for root and all client-side application routes
+        return FileResponse(FRONTEND_DIST_DIR / "index.html")
+else:
+    @app.get("/")
+    def root():
+        return {
+            "name": "SHE Twin AI Backend API",
+            "status": "online",
+            "version": "1.0.0",
+            "docs": "/docs",
+            "time": datetime.now(timezone.utc).isoformat()
+        }
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    is_prod = os.environ.get("APP_ENV", "development").lower() == "production"
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=not is_prod)
+
