@@ -1,0 +1,54 @@
+# Environment and credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.cert
+
+# Allow example files
+!.env.example
+
+# Local SQLite databases and temp files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/test_*.db
+
+# Medical Report Uploads
+database/uploads/*
+!database/uploads/.gitkeep
+
+# Python cache & build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Node & Frontend Build
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
