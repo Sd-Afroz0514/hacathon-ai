@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch Chrome (SHE Twin AI)",
             "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/SHE-Twin-AI/frontend"
+            "webRoot": "${workspaceFolder}/SHE-Twin-AI/ frontend"
         }
     ]
 }
