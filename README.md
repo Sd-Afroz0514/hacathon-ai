@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌸 SHE WIN Hackathon — SHE Twin AI Platform
 
 Welcome to the **SHE Twin AI** project repository developed for the **SHE WIN Hackathon**.
@@ -29,3 +30,6 @@ To immediately launch the full-stack application (Backend + Frontend + Browser):
 For complete architectural details, life-stage configurations, 36-domain AI Assistant guides, REST API specifications, and database setup, please read the full documentation in:
 
 👉 **[SHE-Twin-AI Detailed Documentation](./SHE-Twin-AI/README.md)**
+=======
+# hacathon-ai
+>>>>>>> cacecdffe69fe5b966d7b554f11e88e50fb87c5a
